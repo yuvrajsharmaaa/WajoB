@@ -1,4 +1,44 @@
-# Getting Started with Create React App
+# WajoB - Daily Wage Jobs on TON Blockchain 🚀
+
+A Telegram Mini App connecting daily-wage building security workers with employers using TON blockchain for trusted job postings, escrow payments, and on-chain reputation.
+
+![TON](https://img.shields.io/badge/TON-Blockchain-0098EA)
+![React](https://img.shields.io/badge/React-19.2.0-61DAFB)
+![Tailwind](https://img.shields.io/badge/Tailwind-3.x-38B2AC)
+![Telegram](https://img.shields.io/badge/Telegram-Mini_App-0088cc)
+
+## 🎯 Project Vision
+
+WajoB empowers daily-wage workers in the security sector by:
+- **Eliminating trust barriers** through blockchain-backed job postings
+- **Securing payments** via smart contract escrow
+- **Building verifiable reputation** on-chain
+- **Enabling direct Toncoin payments** with minimal friction
+
+## ✨ Features
+
+### For Workers 👷
+- Browse verified job listings on TON blockchain
+- Apply for jobs with one tap
+- Receive guaranteed payment after job completion
+- Build on-chain reputation through employer ratings
+
+### For Employers 🏢
+- Post jobs immutably on blockchain
+- Automatic escrow payment handling
+- Approve completed work securely
+- Access verified worker reputation data
+
+## 🛠 Tech Stack
+
+- **React 19.2.0** - Modern UI framework
+- **Tailwind CSS 3.x** - Utility-first styling
+- **TON Blockchain** - Fast, scalable network
+- **TON Connect** - Seamless wallet integration
+- **Telegram Web App SDK** - Native Telegram integration
+- **Tolk Smart Contracts** - Secure on-chain logic
+
+## 📱 Quick Start
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

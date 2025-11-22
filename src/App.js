@@ -1,24 +1,36 @@
-import logo from './logo.svg';
+import React, { useEffect } from 'react';
 import './App.css';
+import { TonConnectProvider } from './contexts/TonConnectProvider';
+import { useTelegramWebApp } from './hooks/useTelegramWebApp';
+import Header from './components/Header';
+import JobListings from './pages/JobListings';
+
+function AppContent() {
+  const webApp = useTelegramWebApp();
+
+  useEffect(() => {
+    if (webApp) {
+      // Set header color to match TON blue
+      webApp.setHeaderColor('#0098EA');
+      webApp.setBackgroundColor('#f5f5f5');
+    }
+  }, [webApp]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main className="pb-20">
+        <JobListings />
+      </main>
+    </div>
+  );
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <TonConnectProvider>
+      <AppContent />
+    </TonConnectProvider>
   );
 }
 
