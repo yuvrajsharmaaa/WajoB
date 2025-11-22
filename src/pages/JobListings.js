@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import JobCard from '../components/JobCard';
+import { JobPostingForm } from '../components/JobPostingForm';
 import { useTonWallet } from '../hooks/useTonWallet';
 import { NETWORK, areContractsDeployed } from '../config/contracts';
 
@@ -40,6 +41,7 @@ const mockJobs = [
 const JobListings = () => {
   const { connected } = useTonWallet();
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showPostJobForm, setShowPostJobForm] = useState(false);
 
   const handleApply = (job) => {
     if (!connected) {
@@ -91,22 +93,33 @@ const JobListings = () => {
       </div>
 
       <div className="mb-6">
-        
         {/* Category Filter */}
-        <div className="flex space-x-2 overflow-x-auto pb-2">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
-                selectedCategory === category
-                  ? 'bg-ton-blue text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-2 items-center justify-between mb-4">
+          <div className="flex space-x-2 overflow-x-auto pb-2">
+            {categories.map(category => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  selectedCategory === category
+                    ? 'bg-ton-blue text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
+          {/* Post Job Button */}
+          <button
+            onClick={() => setShowPostJobForm(true)}
+            disabled={!connected}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <span className="text-xl">+</span>
+            Post Job
+          </button>
         </div>
       </div>
 
@@ -127,6 +140,17 @@ const JobListings = () => {
           </div>
         )}
       </div>
+
+      {/* Job Posting Form Modal */}
+      {showPostJobForm && (
+        <JobPostingForm 
+          onClose={() => setShowPostJobForm(false)}
+          onSuccess={() => {
+            setShowPostJobForm(false);
+            // TODO: Refresh jobs list from blockchain
+          }}
+        />
+      )}
 
       {!connected && (
         <div className="fixed bottom-0 left-0 right-0 bg-yellow-50 border-t border-yellow-200 p-4">
