@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import JobCard from '../components/JobCard';
 import { useTonWallet } from '../hooks/useTonWallet';
+import { NETWORK, areContractsDeployed } from '../config/contracts';
 
 // Mock data - will be replaced with blockchain data
 const mockJobs = [
@@ -45,7 +46,13 @@ const JobListings = () => {
       alert('Please connect your TON wallet to apply for jobs');
       return;
     }
-    alert(`Applying for: ${job.title}`);
+    
+    if (!areContractsDeployed()) {
+      alert(`⚠️ Smart Contracts Not Deployed\n\nContracts need to be deployed to ${NETWORK.current} first.\n\nRun these commands in /contract directory:\n\n1. npx blueprint run deployDeployJobRegistry --testnet\n2. npx blueprint run deployDeployEscrow --testnet\n3. npx blueprint run deployDeployReputation --testnet\n\nThen update contract addresses in src/config/contracts.js`);
+      return;
+    }
+    
+    alert(`Applying for: ${job.title}\n\n🧪 Testnet Mode: Blockchain integration ready!`);
     // TODO: Implement blockchain transaction
   };
 
@@ -60,10 +67,30 @@ const JobListings = () => {
     ? mockJobs 
     : mockJobs.filter(job => job.category === selectedCategory);
 
+  const contractsDeployed = areContractsDeployed();
+
   return (
     <div className="container mx-auto p-4">
+      {/* Network and Status Banner */}
+      <div className="mb-4 flex flex-wrap gap-2 items-center justify-between">
+        <h2 className="text-2xl font-bold">Available Jobs</h2>
+        <div className="flex gap-2">
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            NETWORK.current === 'testnet' 
+              ? 'bg-orange-100 text-orange-800' 
+              : 'bg-green-100 text-green-800'
+          }`}>
+            {NETWORK.current === 'testnet' ? '🧪 TESTNET' : '🚀 MAINNET'}
+          </span>
+          {!contractsDeployed && (
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+              ⚠️ Deploy Contracts
+            </span>
+          )}
+        </div>
+      </div>
+
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-4">Available Jobs</h2>
         
         {/* Category Filter */}
         <div className="flex space-x-2 overflow-x-auto pb-2">
