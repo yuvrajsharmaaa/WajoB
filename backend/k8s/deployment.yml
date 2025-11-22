@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wagob-backend
+  labels:
+    app: wagob-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: wagob-backend
+  template:
+    metadata:
+      labels:
+        app: wagob-backend
+    spec:
+      containers:
+      - name: backend
+        image: wagob/backend:latest
+        ports:
+        - containerPort: 3001
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3001"
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: wagob-secrets
+              key: db-host
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: wagob-secrets
+              key: db-username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: wagob-secrets
+              key: db-password
+        - name: DB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: wagob-secrets
+              key: db-database
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: wagob-secrets
+              key: redis-host
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: wagob-secrets
+              key: redis-password
+        - name: TELEGRAM_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: wagob-secrets
+              key: telegram-bot-token
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: wagob-secrets
+              key: jwt-secret
+        - name: CONTRACT_JOB_REGISTRY
+          valueFrom:
+            configMapKeyRef:
+              name: wagob-config
+              key: contract-job-registry
+        - name: CONTRACT_ESCROW
+          valueFrom:
+            configMapKeyRef:
+              name: wagob-config
+              key: contract-escrow
+        - name: CONTRACT_REPUTATION
+          valueFrom:
+            configMapKeyRef:
+              name: wagob-config
+              key: contract-reputation
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 3001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wagob-backend-service
+spec:
+  selector:
+    app: wagob-backend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3001
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wagob-config
+data:
+  contract-job-registry: "EQD..." # Update after deployment
+  contract-escrow: "EQD..."
+  contract-reputation: "EQD..."
+  ton-network: "testnet"
+  ton-api-url: "https://testnet.toncenter.com/api/v2"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wagob-secrets
+type: Opaque
+stringData:
+  db-host: "your-postgres-host"
+  db-username: "wagob_user"
+  db-password: "your-db-password"
+  db-database: "wagob_db"
+  redis-host: "your-redis-host"
+  redis-password: ""
+  telegram-bot-token: "your-bot-token"
+  jwt-secret: "your-jwt-secret"
