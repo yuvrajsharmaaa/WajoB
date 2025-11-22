@@ -3,11 +3,23 @@ import { DeployJobRegistry } from '../wrappers/DeployJobRegistry';
 import { compile, NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    const deployJobRegistry = provider.open(DeployJobRegistry.createFromConfig({}, await compile('DeployJobRegistry')));
+    const jobRegistry = provider.open(
+        DeployJobRegistry.createFromConfig(
+            {
+                owner: provider.sender().address!,
+            },
+            await compile('DeployJobRegistry')
+        )
+    );
 
-    await deployJobRegistry.sendDeploy(provider.sender(), toNano('0.05'));
+    await jobRegistry.sendDeploy(provider.sender(), toNano('0.05'));
 
-    await provider.waitForDeploy(deployJobRegistry.address);
+    await provider.waitForDeploy(jobRegistry.address);
 
-    // run methods on `deployJobRegistry`
+    console.log('JobRegistry deployed at:', jobRegistry.address);
+    console.log('Owner:', provider.sender().address);
+    
+    // Verify deployment
+    const jobCount = await jobRegistry.getJobCount();
+    console.log('Initial job count:', jobCount.toString());
 }

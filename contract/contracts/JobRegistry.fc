@@ -80,9 +80,7 @@ cell pack_job(
 }
 
 ;; Unpack job data
-(int, slice, slice, int, int, int, cell) unpack_job(cell job_cell) inline {
-    slice ds = job_cell.begin_parse();
-    
+(int, slice, slice, int, int, int, cell) unpack_job(slice ds) inline {
     return (
         ds~load_uint(64),      ;; job_id
         ds~load_msg_addr(),    ;; employer
@@ -141,14 +139,14 @@ cell pack_job(
     load_storage();
     
     ;; Get job
-    (cell job_cell, int found?) = storage::jobs.udict_get?(64, job_id);
+    (slice job_slice, int found?) = storage::jobs.udict_get?(64, job_id);
     throw_unless(error::job_not_found, found?);
     
     ;; Unpack job
-    var (id, employer, worker, wages, old_status, created_at, metadata) = unpack_job(job_cell);
+    var (id, employer, worker, wages, old_status, created_at, metadata) = unpack_job(job_slice);
     
     ;; Check authorization
-    throw_unless(error::unauthorized, equal_slices(sender, employer));
+    throw_unless(error::unauthorized, equal_slice_bits(sender, employer));
     
     ;; Validate status
     throw_unless(error::invalid_status, 
@@ -168,13 +166,13 @@ cell pack_job(
 () op_assign_worker(slice sender, int job_id, slice new_worker) impure {
     load_storage();
     
-    (cell job_cell, int found?) = storage::jobs.udict_get?(64, job_id);
+    (slice job_slice, int found?) = storage::jobs.udict_get?(64, job_id);
     throw_unless(error::job_not_found, found?);
     
-    var (id, employer, worker, wages, old_status, created_at, metadata) = unpack_job(job_cell);
+    var (id, employer, worker, wages, old_status, created_at, metadata) = unpack_job(job_slice);
     
     ;; Only employer can assign
-    throw_unless(error::unauthorized, equal_slices(sender, employer));
+    throw_unless(error::unauthorized, equal_slice_bits(sender, employer));
     
     ;; Update with worker and set status to assigned
     cell updated_job = pack_job(
@@ -238,10 +236,10 @@ cell pack_job(
 (int, slice, slice, int, int, int, cell) get_job(int job_id) method_id {
     load_storage();
     
-    (cell job_cell, int found?) = storage::jobs.udict_get?(64, job_id);
+    (slice job_slice, int found?) = storage::jobs.udict_get?(64, job_id);
     throw_unless(error::job_not_found, found?);
     
-    return unpack_job(job_cell);
+    return unpack_job(job_slice);
 }
 
 ;; Get total job count
@@ -259,6 +257,6 @@ slice get_owner() method_id {
 ;; Check if job exists
 int job_exists(int job_id) method_id {
     load_storage();
-    (cell job_cell, int found?) = storage::jobs.udict_get?(64, job_id);
+    (slice job_slice, int found?) = storage::jobs.udict_get?(64, job_id);
     return found?;
 }

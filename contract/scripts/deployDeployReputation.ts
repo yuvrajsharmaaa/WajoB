@@ -3,19 +3,23 @@ import { DeployReputation } from '../wrappers/DeployReputation';
 import { compile, NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    const deployReputation = provider.open(
+    const reputation = provider.open(
         DeployReputation.createFromConfig(
             {
-                id: Math.floor(Math.random() * 10000),
-                counter: 0,
+                owner: provider.sender().address!,
             },
             await compile('DeployReputation')
         )
     );
 
-    await deployReputation.sendDeploy(provider.sender(), toNano('0.05'));
+    await reputation.sendDeploy(provider.sender(), toNano('0.05'));
 
-    await provider.waitForDeploy(deployReputation.address);
+    await provider.waitForDeploy(reputation.address);
 
-    console.log('ID', await deployReputation.getID());
+    console.log('Reputation deployed at:', reputation.address);
+    console.log('Owner:', provider.sender().address);
+    
+    // Verify deployment
+    const ratingCount = await reputation.getRatingCount();
+    console.log('Initial rating count:', ratingCount.toString());
 }

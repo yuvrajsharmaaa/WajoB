@@ -66,8 +66,8 @@ cell pack_rating(
     .end_cell();
 }
 
-(int, int, slice, slice, int, int) unpack_rating(cell rating_cell) inline {
-    slice ds = rating_cell.begin_parse();
+(int, int, slice, slice, int, int) unpack_rating(slice ds) inline {
+    
     return (
         ds~load_uint(64),    ;; rating_id
         ds~load_uint(64),    ;; job_id
@@ -87,8 +87,8 @@ cell pack_reputation(int total, int sum, int avg, int jobs) inline {
     .end_cell();
 }
 
-(int, int, int, int) unpack_reputation(cell rep_cell) inline {
-    slice ds = rep_cell.begin_parse();
+(int, int, int, int) unpack_reputation(slice ds) inline {
+    
     return (
         ds~load_uint(32),  ;; total_ratings
         ds~load_uint(32),  ;; sum_ratings
@@ -114,7 +114,7 @@ cell pack_reputation(int total, int sum, int avg, int jobs) inline {
     int sender_hash = slice_hash(sender);
     int job_key = job_id + sender_hash;  ;; Composite key
     
-    (cell existing, int found?) = storage::job_ratings.udict_get?(256, job_key);
+    (slice existing, int found?) = storage::job_ratings.udict_get?(256, job_key);
     throw_if(error::already_rated, found?);
     
     ;; Create rating
@@ -134,7 +134,7 @@ cell pack_reputation(int total, int sum, int avg, int jobs) inline {
     
     ;; Update ratee's reputation
     int ratee_hash = slice_hash(ratee);
-    (cell rep_cell, int rep_found?) = storage::reputations.udict_get?(256, ratee_hash);
+    (slice rep_slice, int rep_found?) = storage::reputations.udict_get?(256, ratee_hash);
     
     int total = 1;
     int sum = score;
@@ -142,7 +142,7 @@ cell pack_reputation(int total, int sum, int avg, int jobs) inline {
     int jobs = 1;
     
     if (rep_found?) {
-        var (old_total, old_sum, old_avg, old_jobs) = unpack_reputation(rep_cell);
+        var (old_total, old_sum, old_avg, old_jobs) = unpack_reputation(rep_slice);
         total = old_total + 1;
         sum = old_sum + score;
         jobs = old_jobs + 1;
@@ -202,20 +202,20 @@ cell pack_reputation(int total, int sum, int avg, int jobs) inline {
 (int, int, int, int) get_reputation(slice user) method_id {
     load_storage();
     int user_hash = slice_hash(user);
-    (cell rep_cell, int found?) = storage::reputations.udict_get?(256, user_hash);
+    (slice rep_slice, int found?) = storage::reputations.udict_get?(256, user_hash);
     
     if (~ found?) {
         return (0, 0, 0, 0);
     }
     
-    return unpack_reputation(rep_cell);
+    return unpack_reputation(rep_slice);
 }
 
 (int, int, slice, slice, int, int) get_rating(int rating_id) method_id {
     load_storage();
-    (cell rating_cell, int found?) = storage::ratings.udict_get?(64, rating_id);
+    (slice rating_slice, int found?) = storage::ratings.udict_get?(64, rating_id);
     throw_unless(error::not_found, found?);
-    return unpack_rating(rating_cell);
+    return unpack_rating(rating_slice);
 }
 
 int get_rating_count() method_id {
@@ -226,13 +226,13 @@ int get_rating_count() method_id {
 int calculate_score(slice user) method_id {
     load_storage();
     int user_hash = slice_hash(user);
-    (cell rep_cell, int found?) = storage::reputations.udict_get?(256, user_hash);
+    (slice rep_slice, int found?) = storage::reputations.udict_get?(256, user_hash);
     
     if (~ found?) {
         return 0;
     }
     
-    var (total, sum, avg, jobs) = unpack_reputation(rep_cell);
+    var (total, sum, avg, jobs) = unpack_reputation(rep_slice);
     
     ;; 70% rating, 30% job count (capped at 10)
     int rating_component = muldiv(avg, 70, 100);

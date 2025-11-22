@@ -81,8 +81,8 @@ cell pack_escrow(
     .end_cell();
 }
 
-(int, int, slice, slice, int, int, int, int, int) unpack_escrow(cell escrow_cell) inline {
-    slice ds = escrow_cell.begin_parse();
+(int, int, slice, slice, int, int, int, int, int) unpack_escrow(slice ds) inline {
+    
     return (
         ds~load_uint(64),      ;; escrow_id
         ds~load_uint(64),      ;; job_id
@@ -129,13 +129,13 @@ cell pack_escrow(
 () op_fund(slice sender, int escrow_id, int msg_value) impure {
     load_storage();
     
-    (cell escrow_cell, int found?) = storage::escrows.udict_get?(64, escrow_id);
+    (slice escrow_slice, int found?) = storage::escrows.udict_get?(64, escrow_id);
     throw_unless(error::not_found, found?);
     
     var (id, job_id, employer, worker, amount, old_state, created_at, emp_conf, work_conf) = 
-        unpack_escrow(escrow_cell);
+        unpack_escrow(escrow_slice);
     
-    throw_unless(error::unauthorized, equal_slices(sender, employer));
+    throw_unless(error::unauthorized, equal_slice_bits(sender, employer));
     throw_unless(error::invalid_state, old_state == state::created);
     throw_unless(error::insufficient_funds, msg_value >= amount);
     
@@ -165,13 +165,13 @@ cell pack_escrow(
 () op_lock(slice sender, int escrow_id) impure {
     load_storage();
     
-    (cell escrow_cell, int found?) = storage::escrows.udict_get?(64, escrow_id);
+    (slice escrow_slice, int found?) = storage::escrows.udict_get?(64, escrow_id);
     throw_unless(error::not_found, found?);
     
     var (id, job_id, employer, worker, amount, old_state, created_at, emp_conf, work_conf) = 
-        unpack_escrow(escrow_cell);
+        unpack_escrow(escrow_slice);
     
-    throw_unless(error::unauthorized, equal_slices(sender, worker));
+    throw_unless(error::unauthorized, equal_slice_bits(sender, worker));
     throw_unless(error::invalid_state, old_state == state::funded);
     
     cell updated = pack_escrow(
@@ -186,19 +186,19 @@ cell pack_escrow(
 () op_confirm(slice sender, int escrow_id) impure {
     load_storage();
     
-    (cell escrow_cell, int found?) = storage::escrows.udict_get?(64, escrow_id);
+    (slice escrow_slice, int found?) = storage::escrows.udict_get?(64, escrow_id);
     throw_unless(error::not_found, found?);
     
     var (id, job_id, employer, worker, amount, old_state, created_at, emp_conf, work_conf) = 
-        unpack_escrow(escrow_cell);
+        unpack_escrow(escrow_slice);
     
     throw_unless(error::invalid_state, old_state == state::locked);
     
     ;; Update confirmation
-    if (equal_slices(sender, employer)) {
+    if (equal_slice_bits(sender, employer)) {
         emp_conf = 1;
     }
-    if (equal_slices(sender, worker)) {
+    if (equal_slice_bits(sender, worker)) {
         work_conf = 1;
     }
     
@@ -252,13 +252,13 @@ cell pack_escrow(
 () op_dispute(slice sender, int escrow_id) impure {
     load_storage();
     
-    (cell escrow_cell, int found?) = storage::escrows.udict_get?(64, escrow_id);
+    (slice escrow_slice, int found?) = storage::escrows.udict_get?(64, escrow_id);
     throw_unless(error::not_found, found?);
     
     var (id, job_id, employer, worker, amount, old_state, created_at, emp_conf, work_conf) = 
-        unpack_escrow(escrow_cell);
+        unpack_escrow(escrow_slice);
     
-    int is_party = equal_slices(sender, employer) | equal_slices(sender, worker);
+    int is_party = equal_slice_bits(sender, employer) | equal_slice_bits(sender, worker);
     throw_unless(error::unauthorized, is_party);
     throw_unless(error::invalid_state, old_state == state::locked);
     
@@ -274,13 +274,13 @@ cell pack_escrow(
 () op_resolve(slice sender, int escrow_id, int to_worker) impure {
     load_storage();
     
-    throw_unless(error::unauthorized, equal_slices(sender, storage::owner));
+    throw_unless(error::unauthorized, equal_slice_bits(sender, storage::owner));
     
-    (cell escrow_cell, int found?) = storage::escrows.udict_get?(64, escrow_id);
+    (slice escrow_slice, int found?) = storage::escrows.udict_get?(64, escrow_id);
     throw_unless(error::not_found, found?);
     
     var (id, job_id, employer, worker, amount, old_state, created_at, emp_conf, work_conf) = 
-        unpack_escrow(escrow_cell);
+        unpack_escrow(escrow_slice);
     
     throw_unless(error::invalid_state, old_state == state::disputed);
     
@@ -375,9 +375,9 @@ cell pack_escrow(
 
 (int, int, slice, slice, int, int, int, int, int) get_escrow(int escrow_id) method_id {
     load_storage();
-    (cell escrow_cell, int found?) = storage::escrows.udict_get?(64, escrow_id);
+    (slice escrow_slice, int found?) = storage::escrows.udict_get?(64, escrow_id);
     throw_unless(error::not_found, found?);
-    return unpack_escrow(escrow_cell);
+    return unpack_escrow(escrow_slice);
 }
 
 int get_escrow_count() method_id {
