@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TonClient, Address } from '@ton/ton';
-import { HttpApi } from '@ton/ton';
+import { getHttpEndpoint } from '@orbs-network/ton-access';
 
 @Injectable()
 export class TonClientService {
@@ -25,9 +25,16 @@ export class TonClientService {
 
   private async initializeClient() {
     try {
-      const endpoint = await HttpApi.getHttpEndpoint({
-        network: this.network === 'mainnet' ? 'mainnet' : 'testnet',
-      });
+      // Use custom API URL if provided, otherwise use TON Access
+      let endpoint: string;
+      
+      if (this.apiUrl) {
+        endpoint = this.apiUrl;
+      } else {
+        endpoint = await getHttpEndpoint({
+          network: this.network === 'mainnet' ? 'mainnet' : 'testnet',
+        });
+      }
 
       this.client = new TonClient({ endpoint });
       this.logger.log(`TON client initialized for ${this.network}`);

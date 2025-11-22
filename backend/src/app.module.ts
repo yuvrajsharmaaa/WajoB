@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
-import * as redisStore from 'cache-manager-redis-store';
+import { redisStore } from 'cache-manager-redis-yet';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { EscrowModule } from './modules/escrow/escrow.module';
 import { ReputationModule } from './modules/reputation/reputation.module';
@@ -36,13 +36,16 @@ import { validationSchema } from './config/validation.schema';
       isGlobal: true,
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        store: redisStore,
-        host: configService.get('REDIS_HOST'),
-        port: configService.get('REDIS_PORT'),
-        password: configService.get('REDIS_PASSWORD'),
-        db: configService.get('REDIS_DB'),
-        ttl: configService.get('CACHE_TTL'),
+      useFactory: async (configService: ConfigService) => ({
+        store: await redisStore({
+          socket: {
+            host: configService.get('REDIS_HOST', 'localhost'),
+            port: configService.get('REDIS_PORT', 6379),
+          },
+          password: configService.get('REDIS_PASSWORD'),
+          database: configService.get('REDIS_DB', 0),
+          ttl: configService.get('CACHE_TTL', 3600) * 1000, // Convert to milliseconds
+        }),
       }),
     }),
 

@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-import * as TelegramBot from 'node-telegram-bot-api';
+import TelegramBot = require('node-telegram-bot-api');
 import { User } from '@/entities/users/user.entity';
 import { Notification, NotificationType } from '@/entities/notifications/notification.entity';
 
