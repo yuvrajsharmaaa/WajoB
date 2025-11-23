@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 /**
  * OPTIMIZED WebSocket Hook
@@ -19,7 +19,7 @@ import { io, Socket } from 'socket.io-client';
  * - Better battery life on mobile
  */
 
-let globalSocket: Socket | null = null;
+let globalSocket = null;
 let connectionCount = 0;
 const eventListeners = new Map();
 
@@ -97,7 +97,7 @@ export function useWebSocket() {
   /**
    * OPTIMIZATION: Subscribe to events with automatic cleanup
    */
-  const subscribe = useCallback((event: string, handler: Function) => {
+  const subscribe = useCallback((event, handler) => {
     if (!globalSocket) {
       console.warn('Socket not initialized. Initializing now...');
       initializeSocket();
@@ -106,7 +106,7 @@ export function useWebSocket() {
     const socket = globalSocket || initializeSocket();
 
     // Wrapper to ensure handler only runs if component is mounted
-    const safeHandler = (...args: any[]) => {
+    const safeHandler = (...args) => {
       if (mountedRef.current) {
         handler(...args);
       }
@@ -142,7 +142,7 @@ export function useWebSocket() {
   /**
    * OPTIMIZATION: Unsubscribe from event
    */
-  const unsubscribe = useCallback((event: string, handler?: Function) => {
+  const unsubscribe = useCallback((event, handler) => {
     if (!globalSocket) return;
 
     if (handler) {
@@ -157,7 +157,7 @@ export function useWebSocket() {
   /**
    * Subscribe to a room (for filtered updates)
    */
-  const joinRoom = useCallback((room: string) => {
+  const joinRoom = useCallback((room) => {
     if (!globalSocket) return;
 
     globalSocket.emit('subscribe', { room });
@@ -167,7 +167,7 @@ export function useWebSocket() {
   /**
    * Leave a room
    */
-  const leaveRoom = useCallback((room: string) => {
+  const leaveRoom = useCallback((room) => {
     if (!globalSocket) return;
 
     globalSocket.emit('unsubscribe', { room });
@@ -177,7 +177,7 @@ export function useWebSocket() {
   /**
    * Emit event to server
    */
-  const emit = useCallback((event: string, data: any) => {
+  const emit = useCallback((event, data) => {
     if (!globalSocket || !globalSocket.connected) {
       console.warn('Cannot emit: Socket not connected');
       return false;
@@ -238,7 +238,7 @@ export function useWebSocket() {
 /**
  * Hook for subscribing to specific job updates
  */
-export function useJobUpdates(jobId: string | null) {
+export function useJobUpdates(jobId) {
   const { subscribe, unsubscribe, joinRoom, leaveRoom } = useWebSocket();
   const [job, setJob] = useState(null);
 
@@ -277,7 +277,7 @@ export function useJobUpdates(jobId: string | null) {
 /**
  * Hook for new job notifications
  */
-export function useNewJobNotifications(onNewJob: (job: any) => void) {
+export function useNewJobNotifications(onNewJob) {
   const { subscribe } = useWebSocket();
 
   useEffect(() => {
@@ -294,7 +294,7 @@ export function useNewJobNotifications(onNewJob: (job: any) => void) {
 /**
  * Hook for escrow updates
  */
-export function useEscrowUpdates(jobId: string | null) {
+export function useEscrowUpdates(jobId) {
   const { subscribe, joinRoom, leaveRoom } = useWebSocket();
   const [escrowStatus, setEscrowStatus] = useState(null);
 

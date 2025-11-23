@@ -4,8 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { TonClient, Address } from '@ton/ton';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Alert } from '../entities/alert.entity';
-import { MetricSnapshot } from '../entities/metric-snapshot.entity';
+import { Alert, AlertStatus, AlertSeverity } from '../../entities/monitoring/alert.entity';
+import { MetricSnapshot } from '../../entities/monitoring/metric-snapshot.entity';
 import { TelegramService } from '../telegram/telegram.service';
 
 /**
@@ -154,7 +154,7 @@ export class ContractMonitorService {
    */
   private async getContractBalance(address: Address): Promise<bigint> {
     try {
-      const { balance } = await this.tonClient.getBalance(address);
+      const balance = await this.tonClient.getBalance(address);
       return BigInt(balance);
     } catch (error) {
       this.logger.error(`Failed to get balance for ${address}:`, error);
@@ -274,16 +274,22 @@ export class ContractMonitorService {
    */
   private async handleAnomalies(anomalies: AnomalyDetection[]) {
     for (const anomaly of anomalies) {
-      this.logger.warn(`Anomaly detected: ${anomaly.message}`, anomaly.data);
+      // Map severity to AlertSeverity enum
+      const severityMap: Record<string, AlertSeverity> = {
+        'low': AlertSeverity.INFO,
+        'medium': AlertSeverity.WARNING,
+        'high': AlertSeverity.ERROR,
+        'critical': AlertSeverity.CRITICAL,
+      };
 
       // Save alert to database
       const alert = this.alertRepository.create({
-        type: anomaly.type,
-        severity: anomaly.severity,
-        message: anomaly.message,
-        data: anomaly.data,
-        timestamp: anomaly.timestamp,
-        resolved: false,
+        title: anomaly.type,
+        description: anomaly.message,
+        severity: severityMap[anomaly.severity] || AlertSeverity.INFO,
+        source: 'contract-monitor',
+        metadata: anomaly.data,
+        status: AlertStatus.ACTIVE,
       });
       await this.alertRepository.save(alert);
 
@@ -344,17 +350,43 @@ Immediate attention required!
    * Save metric snapshot for historical analysis
    */
   private async saveMetricSnapshot(metric: ContractMetrics) {
-    const snapshot = this.metricsRepository.create({
-      contractName: metric.contractName,
-      balance: metric.balance.toString(),
-      transactionCount: metric.transactionCount24h,
-      successRate: metric.successRate,
-      averageGas: metric.averageGas.toString(),
-      errorCount: metric.errorCount,
-      timestamp: metric.lastChecked,
-    });
+    // Save multiple metrics as separate snapshots
+    const snapshots = [
+      {
+        metricName: 'balance',
+        contractName: metric.contractName,
+        value: parseFloat(metric.balance.toString()),
+        unit: 'TON',
+        metadata: { lastChecked: metric.lastChecked },
+      },
+      {
+        metricName: 'transaction_count',
+        contractName: metric.contractName,
+        value: metric.transactionCount24h,
+        transactionCount: metric.transactionCount24h,
+        metadata: { period: '24h', lastChecked: metric.lastChecked },
+      },
+      {
+        metricName: 'success_rate',
+        contractName: metric.contractName,
+        value: metric.successRate,
+        unit: 'percentage',
+        metadata: { lastChecked: metric.lastChecked },
+      },
+      {
+        metricName: 'average_gas',
+        contractName: metric.contractName,
+        value: parseFloat(metric.averageGas.toString()),
+        averageGas: parseInt(metric.averageGas.toString()),
+        unit: 'gas',
+        metadata: { lastChecked: metric.lastChecked },
+      },
+    ];
 
-    await this.metricsRepository.save(snapshot);
+    for (const snapshotData of snapshots) {
+      const snapshot = this.metricsRepository.create(snapshotData);
+      await this.metricsRepository.save(snapshot);
+    }
   }
 
   /**
@@ -367,9 +399,9 @@ Immediate attention required!
     const snapshots = await this.metricsRepository.find({
       where: {
         contractName,
-        timestamp: sevenDaysAgo as any, // TypeORM will use >= comparison
+        createdAt: sevenDaysAgo as any, // TypeORM will use >= comparison
       },
-      order: { timestamp: 'DESC' },
+      order: { createdAt: 'DESC' },
       take: 100,
     });
 
@@ -393,9 +425,9 @@ Immediate attention required!
     const snapshots = await this.metricsRepository.find({
       where: {
         contractName,
-        timestamp: sevenDaysAgo as any,
+        createdAt: sevenDaysAgo as any,
       },
-      order: { timestamp: 'DESC' },
+      order: { createdAt: 'DESC' },
       take: 100,
     });
 
@@ -445,7 +477,7 @@ Immediate attention required!
    */
   async getRecentAlerts(limit = 50) {
     return this.alertRepository.find({
-      order: { timestamp: 'DESC' },
+      order: { createdAt: 'DESC' },
       take: limit,
     });
   }
@@ -455,7 +487,7 @@ Immediate attention required!
    */
   async resolveAlert(alertId: number) {
     await this.alertRepository.update(alertId, {
-      resolved: true,
+      status: AlertStatus.RESOLVED,
       resolvedAt: new Date(),
     });
   }

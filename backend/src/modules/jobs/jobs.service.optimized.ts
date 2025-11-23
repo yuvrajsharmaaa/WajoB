@@ -55,7 +55,7 @@ export class JobsServiceOptimized implements OnModuleInit {
       await this.findTopJobs(10);
       
       // Warm up jobs by status
-      await this.findByStatus(JobStatus.OPEN, 1, 20);
+      await this.findByStatus(JobStatus.POSTED, 1, 20);
       
       this.logger.log('Cache warming complete');
     } catch (error) {
@@ -190,7 +190,7 @@ export class JobsServiceOptimized implements OnModuleInit {
           'employer.username',
           'employer.reputation',
         ])
-        .where('job.status = :status', { status: JobStatus.OPEN })
+        .where('job.status = :status', { status: JobStatus.POSTED })
         .orderBy('job.wages', 'DESC')
         .addOrderBy('job.createdAt', 'DESC')
         .limit(limit)
@@ -219,10 +219,10 @@ export class JobsServiceOptimized implements OnModuleInit {
     limit: number = 20,
   ) {
     // Determine cache TTL based on status
-    // OPTIMIZATION: Open jobs change frequently (short TTL)
+    // OPTIMIZATION: Posted jobs change frequently (short TTL)
     //              Completed jobs rarely change (long TTL)
     let cacheTTL = this.CACHE_TTL_MEDIUM;
-    if (status === JobStatus.OPEN) {
+    if (status === JobStatus.POSTED) {
       cacheTTL = this.CACHE_TTL_SHORT;
     } else if (status === JobStatus.COMPLETED || status === JobStatus.CANCELLED) {
       cacheTTL = this.CACHE_TTL_LONG;
@@ -401,7 +401,7 @@ export class JobsServiceOptimized implements OnModuleInit {
       promises.push(this.deletePattern(paginatedPattern));
       
       // Invalidate top jobs if it's a high-value job
-      if (job.status === JobStatus.OPEN && job.wages && job.wages > 50) {
+      if (job.status === JobStatus.POSTED && job.wages && job.wages > 50) {
         promises.push(this.cacheManager.del(`${this.CACHE_PREFIX}:top:*`));
         this.topJobsCache = [];  // Clear in-memory cache
       }
@@ -448,7 +448,7 @@ export class JobsServiceOptimized implements OnModuleInit {
       const jobs = await this.jobRepository
         .createQueryBuilder('job')
         .leftJoinAndSelect('job.employer', 'employer')
-        .where('job.status = :status', { status: JobStatus.OPEN })
+        .where('job.status = :status', { status: JobStatus.POSTED })
         .andWhere(
           `(
             job.title ILIKE :query OR 
@@ -493,7 +493,7 @@ export class JobsServiceOptimized implements OnModuleInit {
         averageWages,
       ] = await Promise.all([
         this.jobRepository.count(),
-        this.jobRepository.count({ where: { status: JobStatus.OPEN } }),
+        this.jobRepository.count({ where: { status: JobStatus.POSTED } }),
         this.jobRepository.count({ where: { status: JobStatus.COMPLETED } }),
         this.jobRepository
           .createQueryBuilder('job')

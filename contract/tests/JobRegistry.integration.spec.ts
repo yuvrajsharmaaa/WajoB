@@ -23,7 +23,9 @@ describe('JobRegistry Integration Tests', () => {
         worker = await blockchain.treasury('worker');
 
         jobRegistry = blockchain.openContract(
-            DeployJobRegistry.createFromConfig({}, code)
+            DeployJobRegistry.createFromConfig({
+                owner: deployer.address
+            }, code)
         );
 
         const deployResult = await jobRegistry.sendDeploy(
@@ -45,10 +47,14 @@ describe('JobRegistry Integration Tests', () => {
             const wages = toNano('100');
             const duration = 8; // hours
 
+            const metadata = beginCell()
+                .storeUint(jobId, 32)
+                .storeUint(duration, 32)
+                .endCell();
+
             const result = await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId,
                 wages,
-                duration,
+                metadata,
                 value: toNano('0.1'),
             });
 
@@ -66,10 +72,14 @@ describe('JobRegistry Integration Tests', () => {
         });
 
         it('should reject job creation with insufficient gas', async () => {
+            const metadata = beginCell()
+                .storeUint(1, 32)
+                .storeUint(8, 32)
+                .endCell();
+
             const result = await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId: 1,
                 wages: toNano('100'),
-                duration: 8,
+                metadata,
                 value: toNano('0.001'), // Too low
             });
 
@@ -85,18 +95,26 @@ describe('JobRegistry Integration Tests', () => {
             const jobId = 1;
 
             // Create first job
+            const metadata1 = beginCell()
+                .storeUint(jobId, 32)
+                .storeUint(8, 32)
+                .endCell();
+
             await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId,
                 wages: toNano('100'),
-                duration: 8,
+                metadata: metadata1,
                 value: toNano('0.1'),
             });
 
             // Try to create duplicate
+            const metadata2 = beginCell()
+                .storeUint(jobId, 32)
+                .storeUint(16, 32)
+                .endCell();
+
             const result = await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId,
                 wages: toNano('200'),
-                duration: 16,
+                metadata: metadata2,
                 value: toNano('0.1'),
             });
 
@@ -109,10 +127,14 @@ describe('JobRegistry Integration Tests', () => {
         });
 
         it('should handle zero wages gracefully', async () => {
+            const metadata = beginCell()
+                .storeUint(1, 32)
+                .storeUint(8, 32)
+                .endCell();
+
             const result = await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId: 1,
                 wages: toNano('0'),
-                duration: 8,
+                metadata,
                 value: toNano('0.1'),
             });
 
@@ -125,10 +147,14 @@ describe('JobRegistry Integration Tests', () => {
         });
 
         it('should measure gas usage for job creation', async () => {
+            const metadata = beginCell()
+                .storeUint(1, 32)
+                .storeUint(8, 32)
+                .endCell();
+
             const result = await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId: 1,
                 wages: toNano('100'),
-                duration: 8,
+                metadata,
                 value: toNano('1'),
             });
 
@@ -142,18 +168,22 @@ describe('JobRegistry Integration Tests', () => {
 
     describe('Job Acceptance', () => {
         beforeEach(async () => {
+            const metadata = beginCell()
+                .storeUint(1, 32)
+                .storeUint(8, 32)
+                .endCell();
+
             // Create a job before each test
             await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId: 1,
                 wages: toNano('100'),
-                duration: 8,
+                metadata,
                 value: toNano('0.1'),
             });
         });
 
         it('should allow worker to accept job', async () => {
             const result = await jobRegistry.sendAcceptJob(worker.getSender(), {
-                jobId: 1,
+                jobId: 1n,
                 value: toNano('0.05'),
             });
 
@@ -170,7 +200,7 @@ describe('JobRegistry Integration Tests', () => {
 
         it('should reject if employer tries to accept their own job', async () => {
             const result = await jobRegistry.sendAcceptJob(employer.getSender(), {
-                jobId: 1,
+                jobId: 1n,
                 value: toNano('0.05'),
             });
 
@@ -184,7 +214,7 @@ describe('JobRegistry Integration Tests', () => {
 
         it('should reject acceptance of non-existent job', async () => {
             const result = await jobRegistry.sendAcceptJob(worker.getSender(), {
-                jobId: 999,
+                jobId: 999n,
                 value: toNano('0.05'),
             });
 
@@ -202,18 +232,18 @@ describe('JobRegistry Integration Tests', () => {
             // Both workers try to accept simultaneously
             const [result1, result2] = await Promise.all([
                 jobRegistry.sendAcceptJob(worker.getSender(), {
-                    jobId: 1,
+                    jobId: 1n,
                     value: toNano('0.05'),
                 }),
                 jobRegistry.sendAcceptJob(worker2.getSender(), {
-                    jobId: 1,
+                    jobId: 1n,
                     value: toNano('0.05'),
                 }),
             ]);
 
             // Only one should succeed
             const successes = [result1, result2].filter(r =>
-                r.transactions.some(tx => 
+                r.transactions.some((tx: any) => 
                     tx.inMessage?.info.type === 'internal' &&
                     tx.inMessage?.info.dest.equals(jobRegistry.address) &&
                     tx.description.type === 'generic' &&
@@ -228,23 +258,27 @@ describe('JobRegistry Integration Tests', () => {
 
     describe('Job Completion', () => {
         beforeEach(async () => {
+            const metadata = beginCell()
+                .storeUint(1, 32)
+                .storeUint(8, 32)
+                .endCell();
+
             // Create and assign job
             await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId: 1,
                 wages: toNano('100'),
-                duration: 8,
+                metadata,
                 value: toNano('0.1'),
             });
 
             await jobRegistry.sendAcceptJob(worker.getSender(), {
-                jobId: 1,
+                jobId: 1n,
                 value: toNano('0.05'),
             });
         });
 
         it('should allow employer to complete job', async () => {
             const result = await jobRegistry.sendCompleteJob(employer.getSender(), {
-                jobId: 1,
+                jobId: 1n,
                 value: toNano('0.05'),
             });
 
@@ -260,7 +294,7 @@ describe('JobRegistry Integration Tests', () => {
 
         it('should reject completion by non-employer', async () => {
             const result = await jobRegistry.sendCompleteJob(worker.getSender(), {
-                jobId: 1,
+                jobId: 1n,
                 value: toNano('0.05'),
             });
 
@@ -273,16 +307,20 @@ describe('JobRegistry Integration Tests', () => {
         });
 
         it('should reject completion of unassigned job', async () => {
+            const metadata = beginCell()
+                .storeUint(2, 32)
+                .storeUint(8, 32)
+                .endCell();
+
             // Create new job without assignment
             await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId: 2,
                 wages: toNano('100'),
-                duration: 8,
+                metadata,
                 value: toNano('0.1'),
             });
 
             const result = await jobRegistry.sendCompleteJob(employer.getSender(), {
-                jobId: 2,
+                jobId: 2n,
                 value: toNano('0.05'),
             });
 
@@ -301,10 +339,14 @@ describe('JobRegistry Integration Tests', () => {
             const results = [];
 
             for (let i = 1; i <= jobCount; i++) {
+                const metadata = beginCell()
+                    .storeUint(i, 32)
+                    .storeUint(8, 32)
+                    .endCell();
+
                 const result = await jobRegistry.sendCreateJob(employer.getSender(), {
-                    jobId: i,
                     wages: toNano('100'),
-                    duration: 8,
+                    metadata,
                     value: toNano('0.1'),
                 });
                 results.push(result);
@@ -332,11 +374,15 @@ describe('JobRegistry Integration Tests', () => {
 
     describe('Network Latency Simulation', () => {
         it('should handle delayed transactions', async () => {
+            const metadata = beginCell()
+                .storeUint(1, 32)
+                .storeUint(8, 32)
+                .endCell();
+
             // Create job
             await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId: 1,
                 wages: toNano('100'),
-                duration: 8,
+                metadata,
                 value: toNano('0.1'),
             });
 
@@ -345,7 +391,7 @@ describe('JobRegistry Integration Tests', () => {
 
             // Accept job after delay
             const result = await jobRegistry.sendAcceptJob(worker.getSender(), {
-                jobId: 1,
+                jobId: 1n,
                 value: toNano('0.05'),
             });
 
@@ -355,12 +401,16 @@ describe('JobRegistry Integration Tests', () => {
         });
 
         it('should handle transaction timeout gracefully', async () => {
+            const metadata = beginCell()
+                .storeUint(1, 32)
+                .storeUint(8, 32)
+                .endCell();
+
             // This test simulates a transaction that might timeout
             // In production, implement retry logic
             const result = await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId: 1,
                 wages: toNano('100'),
-                duration: 8,
+                metadata,
                 value: toNano('0.05'), // Minimal gas
             });
 
@@ -371,11 +421,15 @@ describe('JobRegistry Integration Tests', () => {
 
     describe('State Recovery', () => {
         it('should maintain consistent state after failed transaction', async () => {
+            const metadata = beginCell()
+                .storeUint(1, 32)
+                .storeUint(8, 32)
+                .endCell();
+
             // Create job
             await jobRegistry.sendCreateJob(employer.getSender(), {
-                jobId: 1,
                 wages: toNano('100'),
-                duration: 8,
+                metadata,
                 value: toNano('0.1'),
             });
 
@@ -383,7 +437,7 @@ describe('JobRegistry Integration Tests', () => {
 
             // Try invalid operation
             await jobRegistry.sendCompleteJob(employer.getSender(), {
-                jobId: 1,
+                jobId: 1n,
                 value: toNano('0.05'),
             }).catch(() => {});
 
