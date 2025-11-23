@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import JobCard from '../components/JobCard';
 import { JobPostingForm } from '../components/JobPostingForm';
-import { useTonWallet } from '../hooks/useTonWallet';
+import { useWalletContext } from '../contexts/WalletContext';
 import { useJobs, useJobStats } from '../hooks/useJobsAPI';
 import { NETWORK, areContractsDeployed } from '../config/contracts';
 import { useTelegramUser } from '../hooks/useTelegramWebApp';
 
 const JobListings = () => {
-  const { connected, address } = useTonWallet();
+  const { connected, address, isReady } = useWalletContext();
   const telegramUser = useTelegramUser();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showPostJobForm, setShowPostJobForm] = useState(false);

@@ -1,9 +1,9 @@
 import React from 'react';
-import { useTonWallet } from '../hooks/useTonWallet';
+import { useWalletContext } from '../contexts/WalletContext';
 import { TonConnectButton } from '@tonconnect/ui-react';
 
 const Header = () => {
-  const { wallet, connected } = useTonWallet();
+  const { connected, shortAddress, connectionStatus } = useWalletContext();
 
   return (
     <header className="bg-ton-blue text-white p-4 shadow-lg">
@@ -16,12 +16,21 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          {connected && wallet && (
+          {connected && shortAddress && (
             <div className="text-sm">
-              <p className="text-xs opacity-75">Connected</p>
-              <p className="font-mono text-xs">
-                {wallet.account.address.slice(0, 6)}...{wallet.account.address.slice(-4)}
-              </p>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  connectionStatus === 'connected' ? 'bg-green-400' : 
+                  connectionStatus === 'connecting' ? 'bg-yellow-400 animate-pulse' : 
+                  'bg-gray-400'
+                }`} />
+                <div>
+                  <p className="text-xs opacity-75">
+                    {connectionStatus === 'connecting' ? 'Connecting...' : 'Connected'}
+                  </p>
+                  <p className="font-mono text-xs">{shortAddress}</p>
+                </div>
+              </div>
             </div>
           )}
           <TonConnectButton />

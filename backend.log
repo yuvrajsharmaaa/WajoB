@@ -1,0 +1,9 @@
+nohup: ignoring input
+
+🚀 Mock Backend Server Running!
+📍 URL: http://localhost:3001
+🏥 Health: http://localhost:3001/api/v1/health
+📋 Jobs: http://localhost:3001/api/v1/jobs
+
+✅ Ready to test frontend!
+

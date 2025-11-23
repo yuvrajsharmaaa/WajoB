@@ -5,7 +5,7 @@
 
 // Backend API base URL - configure via environment variable
 export const API_CONFIG = {
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000/api/v1',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export const API_ENDPOINTS = {
   
   // WebSocket
   websocket: {
-    url: process.env.REACT_APP_WS_URL || 'ws://localhost:3000',
+    url: process.env.REACT_APP_WS_URL || 'ws://localhost:3001',
   },
 };
 

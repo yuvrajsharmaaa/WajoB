@@ -18,14 +18,13 @@ export const NETWORK = {
   }
 };
 
-// Contract addresses (will be updated after deployment)
+// Contract addresses (updated from backend deployment)
 export const CONTRACTS = {
   testnet: {
-    // Deploy these contracts using: npx blueprint run deployDeployX --testnet
-    // Then update these addresses
-    jobRegistry: null, // Update after: npx blueprint run deployDeployJobRegistry --testnet
-    escrow: null,      // Update after: npx blueprint run deployDeployEscrow --testnet
-    reputation: null,  // Update after: npx blueprint run deployDeployReputation --testnet
+    // Deployed contract addresses on TON testnet
+    jobRegistry: 'EQDfAs6HiTDdvi6XMsHJuBXncUCFRNz9V5nen09cQG_6ML3s',
+    escrow: 'EQCBHqzZepJvzgjNiXvXmrI1Ew8vTkAISNAevdVGsWEeehBG',
+    reputation: 'EQCSGYJ0zV-N96xNFN_x5KYleD6Nl0r6bkB_NdsQOZWvOAKg',
   },
   
   mainnet: {

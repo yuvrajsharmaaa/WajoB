@@ -3,14 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useJob, useAcceptJob, useCompleteJob, useCancelJob } from '../hooks/useJobsAPI';
 import { useEscrowByJob, useFundEscrow, useReleaseEscrow } from '../hooks/useEscrowAPI';
 import { useJobRatings, useSubmitRating } from '../hooks/useReputationAPI';
-import { useTonWallet } from '../hooks/useTonWallet';
+import { useWalletContext } from '../contexts/WalletContext';
 import { useTelegramWebApp } from '../hooks/useTelegramWebApp';
 import toast from 'react-hot-toast';
 
 const JobDetails = () => {
   const { jobId } = useParams();
   const navigate = useNavigate();
-  const { address } = useTonWallet();
+  const { address, connected, isReady } = useWalletContext();
   const { webApp } = useTelegramWebApp();
   
   // Data fetching
