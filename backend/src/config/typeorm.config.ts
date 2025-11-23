@@ -1,5 +1,10 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { User } from '../entities/users/user.entity';
+import { Job } from '../entities/jobs/job.entity';
+import { Escrow } from '../entities/escrow/escrow.entity';
+import { Reputation } from '../entities/reputation/reputation.entity';
+import { Notification } from '../entities/notifications/notification.entity';
 
 export const typeOrmConfig = (
   configService: ConfigService,
@@ -10,7 +15,7 @@ export const typeOrmConfig = (
   username: configService.get('DB_USERNAME'),
   password: configService.get('DB_PASSWORD'),
   database: configService.get('DB_DATABASE'),
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  entities: [User, Job, Escrow, Reputation, Notification],
   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
   synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
   logging: configService.get('DB_LOGGING') === 'true',

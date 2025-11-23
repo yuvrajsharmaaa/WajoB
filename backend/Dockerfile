@@ -93,17 +93,15 @@ ENV NODE_ENV=production
 COPY package*.json ./
 
 # Install production dependencies only
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nestjs -u 1001
-
-# Change ownership
-RUN chown -R nestjs:nodejs /app
+# Create non-root user (Debian syntax instead of Alpine flags)
+RUN groupadd -g 1001 appgroup && \
+    useradd -r -u 1001 -g appgroup -d /app -s /usr/sbin/nologin nestjs && \
+    chown -R nestjs:appgroup /app
 
 # Switch to non-root user
 USER nestjs
