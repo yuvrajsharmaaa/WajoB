@@ -3,21 +3,27 @@
 # ==================================
 #
 # Security Note:
-# This Dockerfile uses node:20.18.0-bookworm-slim which includes
-# apt-get upgrade to patch known vulnerabilities. The Docker scanner
-# may still report some CVEs that are:
-# 1. Already patched in this version
+# This Dockerfile uses the latest Node.js 20 LTS (20.19.5+) on Debian Bookworm.
+# We apply apt-get upgrade to patch all available vulnerabilities.
+# 
+# Some Docker scanners may report CVEs that are:
+# 1. Already patched but not yet reflected in vulnerability databases
 # 2. Not exploitable in our containerized environment
 # 3. Awaiting upstream fixes in Debian base image
+# 4. False positives from outdated scanning databases
 #
-# We actively monitor and update to the latest LTS Node.js version
-# and apply all available security patches.
+# Mitigation strategy:
+# - Using latest Node.js 20 LTS with security updates
+# - Regular apt-get upgrade to apply Debian security patches
+# - Non-root user execution in production
+# - Minimal attack surface (slim base image)
+# - No unnecessary packages installed
 # ==================================
 
 # ==================================
 # STAGE 1: Build
 # ==================================
-FROM node:20.18.0-bookworm-slim AS builder
+FROM node:20-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -45,11 +51,11 @@ RUN npm run build
 # ==================================
 # STAGE 2: Development
 # ==================================
-FROM node:20.18.0-bookworm-slim AS development
+FROM node:20-bookworm-slim AS development
 
 WORKDIR /app
 
-# Security: Update packages
+# Security: Update packages and install security patches
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends dumb-init && \
@@ -75,11 +81,11 @@ CMD ["npm", "run", "start:dev"]
 # ==================================
 # STAGE 3: Production
 # ==================================
-FROM node:20.18.0-bookworm-slim AS production
+FROM node:20-bookworm-slim AS production
 
 WORKDIR /app
 
-# Security: Update packages to patch vulnerabilities
+# Security: Update packages to patch vulnerabilities and minimize attack surface
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends dumb-init && \
