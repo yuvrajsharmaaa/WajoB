@@ -1,0 +1,46 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "devCommand": "npm start",
+  "installCommand": "npm install",
+  "framework": "create-react-app",
+  "env": {
+    "REACT_APP_API_URL": {
+      "description": "Backend API URL",
+      "value": "https://your-backend.com/api/v1"
+    },
+    "REACT_APP_WS_URL": {
+      "description": "WebSocket URL for real-time updates",
+      "value": "wss://your-backend.com"
+    },
+    "REACT_APP_TON_NETWORK": {
+      "description": "TON network to use (testnet or mainnet)",
+      "value": "testnet"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}
