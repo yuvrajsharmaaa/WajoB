@@ -1,0 +1,133 @@
+site_name: WajoB Documentation
+site_description: Documentation for WajoB - Decentralized Daily-Wage Job Marketplace on TON
+site_author: WajoB Team
+site_url: https://docs.wagob.io
+
+# Repository
+repo_name: yuvrajsharmaaa/WajoB
+repo_url: https://github.com/yuvrajsharmaaa/WajoB
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2025 WajoB
+
+# Configuration
+theme:
+  name: material
+  language: en
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - minify:
+      minify_html: true
+
+# Extensions
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - def_list
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+# Navigation
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Quick Start: tutorials/quickstart.md
+    - FAQ: tutorials/faq.md
+  - User Guides:
+    - Getting Started: user-guides/getting-started.md
+    - Wallet Setup: user-guides/wallet-setup.md
+    - Troubleshooting: user-guides/troubleshooting.md
+  - Developer Documentation:
+    - Architecture Overview: developer/architecture.md
+    - API Reference: developer/api-reference.md
+    - Contributing Guide: developer/contributing.md
+  - Operations & Deployment:
+    - Production Deployment: operations/deployment.md
+  - About:
+    - Project Overview: ../PROJECT_OVERVIEW.md
+    - Changelog: https://github.com/yuvrajsharmaaa/WajoB/releases
+
+# Extra
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/yuvrajsharmaaa/WajoB
+    - icon: fontawesome/brands/telegram
+      link: https://t.me/WajoBSupport
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/WajoB_Dev
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/wagob-dev
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX  # Replace with your GA4 tracking ID
+  version:
+    provider: mike
+    default: latest
+
+# Additional CSS
+extra_css:
+  - stylesheets/extra.css
+
+# Additional JavaScript
+extra_javascript:
+  - javascripts/extra.js

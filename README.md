@@ -230,15 +230,54 @@ export const CONTRACTS = {
 
 ## 📚 Documentation
 
-Comprehensive documentation is available in the following files:
+### 📖 User Documentation
+Perfect for users getting started with WajoB:
 
-- **[PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** - Complete project architecture and features
-- **[backend/README.md](./backend/README.md)** - Backend setup and architecture
-- **[backend/API.md](./backend/API.md)** - REST API reference with examples
-- **[backend/DEPLOYMENT.md](./backend/DEPLOYMENT.md)** - Production deployment guide
-- **[BACKEND_COMPLETE.md](./BACKEND_COMPLETE.md)** - Backend implementation summary
-- **[contract/CONTRACTS_README.md](./contract/CONTRACTS_README.md)** - Smart contract documentation
-- **[FRONTEND_COMPLETE.md](./FRONTEND_COMPLETE.md)** - Frontend implementation details
+- **[Quick Start Guide](./docs/tutorials/quickstart.md)** - 5-minute onboarding tutorial
+- **[Getting Started](./docs/user-guides/getting-started.md)** - Complete user guide
+- **[Wallet Setup](./docs/user-guides/wallet-setup.md)** - TON wallet configuration
+- **[Troubleshooting](./docs/user-guides/troubleshooting.md)** - Common issues and solutions
+- **[FAQ](./docs/tutorials/faq.md)** - Frequently asked questions
+
+### 👨‍💻 Developer Documentation
+For developers contributing to or integrating with WajoB:
+
+- **[Architecture Overview](./docs/developer/architecture.md)** - System design and components
+- **[API Reference](./docs/developer/api-reference.md)** - Complete REST and WebSocket API
+- **[Contributing Guide](./docs/developer/contributing.md)** - How to contribute
+- **[Smart Contracts](./contract/CONTRACTS_README.md)** - Contract documentation
+- **[Backend API Details](./backend/API.md)** - Additional backend API info
+
+### 🚀 Operations Documentation
+For DevOps and system administrators:
+
+- **[Production Deployment](./docs/operations/deployment.md)** - Complete deployment guide
+- **[Backend Deployment](./backend/DEPLOYMENT.md)** - Backend-specific deployment
+- **[Monitoring & Alerts](./MONITORING.md)** - System monitoring setup
+
+### 📋 Project Documentation
+Additional project information:
+
+- **[Project Overview](./PROJECT_OVERVIEW.md)** - Complete project architecture
+- **[Implementation Status](./IMPLEMENTATION_COMPLETE.md)** - Development progress
+- **[Testing Strategy](./TESTING_STRATEGY.md)** - Testing approach
+
+### 🌐 Online Documentation
+Full documentation site built with MkDocs:
+
+```bash
+# Install MkDocs
+pip install mkdocs-material
+
+# Serve documentation locally
+cd docs
+mkdocs serve
+
+# Build static site
+mkdocs build
+```
+
+Visit the docs at: **http://localhost:8000**
 
 ## 🧪 Testing
 
