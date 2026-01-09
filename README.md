@@ -218,15 +218,6 @@ export const CONTRACTS = {
 };
 ```
 
-### 4️⃣ Get Telegram Bot Token
-
-1. Open Telegram and search for [@BotFather](https://t.me/botfather)
-2. Send `/newbot` and follow instructions
-3. Copy the bot token to `backend/.env`
-4. Set up Telegram Mini App:
-   - Send `/newapp` to @BotFather
-   - Choose your bot
-   - Set Web App URL (your Vercel/Netlify deployment)
 
 ## 📚 Documentation
 
